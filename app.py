@@ -64,23 +64,32 @@ decay_percent = st.slider(
 )
 
 def time_to_seconds(time_str):
+    if not time_str or not isinstance(time_str, str):
+        st.error(f"Invalid time input: {time_str}")
+        st.stop()
+        
+    parts = time_str.strip().split(":")
     try:
-        parts = time_str.strip().split(":")
-        if len(parts) == 2:
-            # Format: mm:ss
+        if len(parts) == 2:  # mm:ss format
             minutes = int(parts[0])
             seconds = int(parts[1])
+            if seconds >= 60:
+                st.error(f"Seconds should be less than 60 in time: {time_str}")
+                st.stop()
             return minutes * 60 + seconds
-        elif len(parts) == 3:
-            # Format: h:mm:ss
+        elif len(parts) == 3:  # h:mm:ss format
             hours = int(parts[0])
             minutes = int(parts[1])
             seconds = int(parts[2])
+            if minutes >= 60 or seconds >= 60:
+                st.error(f"Minutes and seconds should be less than 60 in time: {time_str}")
+                st.stop()
             return hours * 3600 + minutes * 60 + seconds
         else:
-            raise ValueError(f"Invalid time format: {time_str}")
+            st.error(f"Time must be in mm:ss or h:mm:ss format. Got: {time_str}")
+            st.stop()
     except (ValueError, IndexError) as e:
-        st.error(f"Invalid time format for '{time_str}'. Please use mm:ss for times under 1 hour or h:mm:ss for longer times.")
+        st.error(f"Invalid time format: {time_str}. Please use mm:ss for times under 1 hour or h:mm:ss for longer times.")
         st.stop()
 
 def format_time(x, pos):
@@ -148,14 +157,14 @@ try:
     # Plotting
     fig, ax = plt.subplots(figsize=(12, 7))
 
-    # Plot PB data
-    plt.plot(labels, pace_pb, label="Your Times", linewidth=4, marker='o', color='red')
+    # Plot PB data points and line
+    plt.plot(labels, pace_pb, 'ro-', label="Your Times", linewidth=2, markersize=8)
 
     # Plot decay projection line
     ref_distance_name = labels[ref_idx]
     plt.plot(labels, projected_pace, 
              label=f"{decay_percent}% decay model (from {ref_distance_name})", 
-             linestyle='--', color='orange', marker='x')
+             linestyle='--', color='orange', marker='x', markersize=6)
 
     # Label PB times
     for i, label in enumerate(labels):
@@ -173,11 +182,13 @@ try:
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(format_time))
     plt.xticks(rotation=45)
 
-    # Title, legend, grid
-    plt.title('Your Running Times & Estimated Fatigue Curve', fontsize=14)
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
+    # Title and legend
+    plt.title('Your Running Times & Estimated Fatigue Curve', fontsize=14, pad=20)
+    plt.legend(loc='upper left')
+    plt.grid(True, alpha=0.3)
+    
+    # Adjust layout
+    fig.set_tight_layout(True)
 
     # Display the plot in Streamlit
     st.pyplot(fig)
