@@ -122,26 +122,34 @@ try:
     all_labels = ["Track 400", "Track 800", "Track 1600", "5k", "10k", "14k", "Half Marathon"]
 
     # Filter based on selected distances
-    times_pb = [time_to_seconds(time) for use, time in all_times if use]
-    distances = [d for use, d in zip([use_400, use_800, use_1600, use_5k, use_10k, use_14k, use_hm], all_distances) if use]
-    labels = [l for use, l in zip([use_400, use_800, use_1600, use_5k, use_10k, use_14k, use_hm], all_labels) if use]
-
-    if not times_pb:
+    selected_times = [(use, time) for use, time in all_times if use]
+    if not selected_times:
         st.error("Please select at least one distance to include in the analysis.")
         st.stop()
+    
+    times_pb = [time_to_seconds(time) for _, time in selected_times]
+    distances = [d for use, d in zip([use_400, use_800, use_1600, use_5k, use_10k, use_14k, use_hm], all_distances) if use]
+    labels = [l for use, l in zip([use_400, use_800, use_1600, use_5k, use_10k, use_14k, use_hm], all_labels) if use]
 
     # Calculate pace in sec/km from PB times
     pace_pb = [t / (d / 1000) for t, d in zip(times_pb, distances)]
 
-    # Find the reference distance for the decay curve (prefer 1600m if available)
-    if use_1600:
+    # Find the reference distance for the decay curve
+    if use_1600 and "Track 1600" in labels:
         ref_idx = labels.index("Track 1600")
+        ref_distance_name = "1600m"
     else:
-        ref_idx = len(distances) // 2  # Use middle distance if 1600m not available
+        # Find the distance closest to the middle of the selected range
+        middle_distance = (min(distances) + max(distances)) / 2
+        ref_idx = min(range(len(distances)), key=lambda i: abs(distances[i] - middle_distance))
+        ref_distance_name = labels[ref_idx]
 
     start_distance = distances[ref_idx]
     start_time_sec = times_pb[ref_idx]
     start_speed = start_distance / start_time_sec
+
+    # Add explanation of reference point
+    st.info(f"Using {ref_distance_name} as the reference point for calculating the fatigue curve.")
 
     decay = (100 - decay_percent) / 100  # Convert percentage to decimal
     projected_pace = []
@@ -155,43 +163,46 @@ try:
         projected_times.append(d / decayed_speed)
 
     # Plotting
+    plt.close('all')  # Clean up any existing plots
     fig, ax = plt.subplots(figsize=(12, 7))
 
-    # Plot PB data points and line
-    plt.plot(labels, pace_pb, 'ro-', label="Your Times", linewidth=2, markersize=8)
+    try:
+        # Plot PB data points and line
+        plt.plot(labels, pace_pb, 'ro-', label="Your Times", linewidth=2, markersize=8)
 
-    # Plot decay projection line
-    ref_distance_name = labels[ref_idx]
-    plt.plot(labels, projected_pace, 
-             label=f"{decay_percent}% decay model (from {ref_distance_name})", 
-             linestyle='--', color='orange', marker='x', markersize=6)
+        # Plot decay projection line
+        plt.plot(labels, projected_pace, 
+                label=f"{decay_percent}% decay model (from {ref_distance_name})", 
+                linestyle='--', color='orange', marker='x', markersize=6)
 
-    # Label PB times
-    for i, label in enumerate(labels):
-        plt.text(i, pace_pb[i], format_hms(times_pb[i]), 
-                fontsize=10, ha='center', va='bottom', color='red')
+        # Label PB times
+        for i, label in enumerate(labels):
+            plt.text(i, pace_pb[i], format_hms(times_pb[i]), 
+                    fontsize=10, ha='center', va='bottom', color='red')
 
-    # Label decay model with projected finish times
-    for i, label in enumerate(labels):
-        plt.text(i, projected_pace[i], format_hms(projected_times[i]), 
-                fontsize=8, ha='center', va='top', color='black')
+        # Label decay model with projected finish times
+        for i, label in enumerate(labels):
+            plt.text(i, projected_pace[i], format_hms(projected_times[i]), 
+                    fontsize=8, ha='center', va='top', color='black')
 
-    # Axis and formatting
-    plt.xlabel('Distance', fontsize=12)
-    plt.ylabel('Pace (/km)', fontsize=12)
-    ax.yaxis.set_major_formatter(ticker.FuncFormatter(format_time))
-    plt.xticks(rotation=45)
+        # Axis and formatting
+        plt.xlabel('Distance', fontsize=12)
+        plt.ylabel('Pace (/km)', fontsize=12)
+        ax.yaxis.set_major_formatter(ticker.FuncFormatter(format_time))
+        plt.xticks(rotation=45)
 
-    # Title and legend
-    plt.title('Your Running Times & Estimated Fatigue Curve', fontsize=14, pad=20)
-    plt.legend(loc='upper left')
-    plt.grid(True, alpha=0.3)
-    
-    # Adjust layout
-    fig.set_tight_layout(True)
+        # Title and legend
+        plt.title('Your Running Times & Estimated Fatigue Curve', fontsize=14, pad=20)
+        plt.legend(loc='upper left')
+        plt.grid(True, alpha=0.3)
+        
+        # Adjust layout
+        fig.set_tight_layout(True)
 
-    # Display the plot in Streamlit
-    st.pyplot(fig)
+        # Display the plot in Streamlit
+        st.pyplot(fig)
+    finally:
+        plt.close(fig)  # Ensure figure is cleaned up even if there's an error
 
     # Analysis section
     st.subheader("Analysis")
