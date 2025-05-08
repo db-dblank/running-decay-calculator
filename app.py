@@ -200,8 +200,8 @@ try:
         plt.legend(loc='upper left')
         plt.grid(True, alpha=0.3)
         
-        # Adjust layout
-        fig.set_tight_layout(True)
+        # Adjust layout with specific margins
+        plt.subplots_adjust(left=0.12, right=0.95, top=0.9, bottom=0.15)
 
         # Display the plot in Streamlit
         st.pyplot(fig)
