@@ -52,6 +52,9 @@ with col3:
     
     use_hm = st.checkbox("Include Half Marathon", value=True)
     time_hm = st.text_input("Half Marathon time (h:mm:ss)", "1:24:04", disabled=not use_hm)
+    
+    use_marathon = st.checkbox("Include Marathon", value=True)
+    time_marathon = st.text_input("Marathon time (h:mm:ss)", "3:00:00", disabled=not use_marathon)
 
 # Decay rate slider
 decay_percent = st.slider(
@@ -115,11 +118,12 @@ try:
         (use_5k, time_5k),
         (use_10k, time_10k),
         (use_14k, time_14k),
-        (use_hm, time_hm)
+        (use_hm, time_hm),
+        (use_marathon, time_marathon)
     ]
     
-    all_distances = [400, 800, 1600, 5000, 10000, 14000, 21097.5]
-    all_labels = ["Track 400", "Track 800", "Track 1600", "5k", "10k", "14k", "Half Marathon"]
+    all_distances = [400, 800, 1600, 5000, 10000, 14000, 21097.5, 42195]
+    all_labels = ["Track 400", "Track 800", "Track 1600", "5k", "10k", "14k", "Half Marathon", "Marathon"]
 
     # Filter based on selected distances
     selected_times = [(use, time) for use, time in all_times if use]
@@ -128,8 +132,8 @@ try:
         st.stop()
     
     times_pb = [time_to_seconds(time) for _, time in selected_times]
-    distances = [d for use, d in zip([use_400, use_800, use_1600, use_5k, use_10k, use_14k, use_hm], all_distances) if use]
-    labels = [l for use, l in zip([use_400, use_800, use_1600, use_5k, use_10k, use_14k, use_hm], all_labels) if use]
+    distances = [d for use, d in zip([use_400, use_800, use_1600, use_5k, use_10k, use_14k, use_hm, use_marathon], all_distances) if use]
+    labels = [l for use, l in zip([use_400, use_800, use_1600, use_5k, use_10k, use_14k, use_hm, use_marathon], all_labels) if use]
 
     # Calculate pace in sec/km from PB times
     pace_pb = [t / (d / 1000) for t, d in zip(times_pb, distances)]
