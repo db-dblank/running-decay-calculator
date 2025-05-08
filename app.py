@@ -64,11 +64,19 @@ decay_percent = st.slider(
 )
 
 def time_to_seconds(time_str):
-    parts = time_str.strip().split(":")
-    if len(parts) == 2:
-        return int(parts[0]) * 60 + int(parts[1])
-    else:
-        return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+    try:
+        parts = time_str.strip().split(":")
+        if len(parts) == 2:
+            # Format: mm:ss
+            return int(parts[0]) * 60 + float(parts[1])
+        elif len(parts) == 3:
+            # Format: h:mm:ss
+            return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+        else:
+            raise ValueError("Invalid time format. Use mm:ss or h:mm:ss")
+    except (ValueError, IndexError) as e:
+        st.error(f"Invalid time format for '{time_str}'. Please use mm:ss for times under 1 hour or h:mm:ss for longer times.")
+        st.stop()
 
 def format_time(x, pos):
     minutes = int(x // 60)
