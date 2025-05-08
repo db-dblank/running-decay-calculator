@@ -68,12 +68,17 @@ def time_to_seconds(time_str):
         parts = time_str.strip().split(":")
         if len(parts) == 2:
             # Format: mm:ss
-            return int(parts[0]) * 60 + float(parts[1])
+            minutes = int(parts[0])
+            seconds = int(parts[1])
+            return minutes * 60 + seconds
         elif len(parts) == 3:
             # Format: h:mm:ss
-            return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
+            hours = int(parts[0])
+            minutes = int(parts[1])
+            seconds = int(parts[2])
+            return hours * 3600 + minutes * 60 + seconds
         else:
-            raise ValueError("Invalid time format. Use mm:ss or h:mm:ss")
+            raise ValueError(f"Invalid time format: {time_str}")
     except (ValueError, IndexError) as e:
         st.error(f"Invalid time format for '{time_str}'. Please use mm:ss for times under 1 hour or h:mm:ss for longer times.")
         st.stop()
