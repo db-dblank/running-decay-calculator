@@ -3,62 +3,61 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
-st.set_page_config(page_title="Running Decay Curve Calculator", layout="wide")
+st.set_page_config(page_title="Calculadora de redução de desempenho", layout="wide")
 
-st.title("Running Decay Curve Calculator")
+st.title("Calculadora de redução de desempenho")
 
 st.markdown("""
-### Understanding Your Running Performance Curve
+### Entendendo a sua curva de redução de performance
 
-This tool helps you visualize your running performance across different distances and calculate your personal fatigue curve. 
-The fatigue curve shows how your speed decreases as distance increases.
+Esta ferramenta ajuda você visualizar o seu desempenho na corrida em diferentes distâncias e calcular a sua curva de fadiga. A curva de fadiga mostra como sua velocidade diminui à medida que a distância aumenta.
 
-As noted by [@johngetstrong](https://twitter.com/johngetstrong):
-- Sprint/middle-distance runners typically show ~10% fatigue curves
-- Well-trained endurance runners can achieve fatigue curves as low as 4%
-- Your fatigue curve can indicate whether to focus on:
-  1. Lifting the entire curve (getting faster across all distances)
-  2. Bending the curve through specialized training
+Como observado por [@johngetstrong](https://twitter.com/johngetstrong):
+- Corredores de sprint/distâncias menores, normalmente apresentam curvas de fadiga em torno de 10%.
+- Corredores de longas distâncias bem treinados podem alcançar curvas de fadiga tão baixas quanto 4%.
+- Sua curva de fadiga pode indicar se você deve focar em:
+  1. Elevar toda a curva (ficando mais rápido em todas as distâncias)
+  2. Ajustar a curva por meio de treinamento especializado
 
-Enter your times below to see where you stand!
+Digite seus tempos abaixo para ver onde você se encontra!
 """)
 
 # Input columns
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.subheader("Enter Your Times")
-    use_400 = st.checkbox("Include 400m", value=True)
-    track_400 = st.text_input("400m time (mm:ss)", "1:02", disabled=not use_400)
+    st.subheader("Insira seus tempos")
+    use_400 = st.checkbox("400m", value=True)
+    track_400 = st.text_input("Tempo dos 400m (mm:ss)", "1:02", disabled=not use_400)
     
-    use_800 = st.checkbox("Include 800m", value=True)
-    track_800 = st.text_input("800m time (mm:ss)", "2:25", disabled=not use_800)
+    use_800 = st.checkbox("800m", value=True)
+    track_800 = st.text_input("Tempo dos 800m (mm:ss)", "2:25", disabled=not use_800)
 
 with col2:
     st.subheader(" ")  # For alignment
-    use_1600 = st.checkbox("Include 1600m", value=True)
-    track_1600 = st.text_input("1600m time (mm:ss)", "4:57", disabled=not use_1600)
+    use_1600 = st.checkbox("1600m", value=True)
+    track_1600 = st.text_input("Tempo dos 1600m (mm:ss)", "4:57", disabled=not use_1600)
     
-    use_5k = st.checkbox("Include 5K", value=True)
-    time_5k = st.text_input("5K time (mm:ss or h:mm:ss)", "17:20", disabled=not use_5k)
+    use_5k = st.checkbox("5K", value=True)
+    time_5k = st.text_input("Tempo dos 5K (mm:ss or h:mm:ss)", "17:20", disabled=not use_5k)
 
 with col3:
     st.subheader(" ")  # For alignment
-    use_10k = st.checkbox("Include 10K", value=True)
-    time_10k = st.text_input("10K time (h:mm:ss)", "39:16", disabled=not use_10k)
+    use_10k = st.checkbox("10K", value=True)
+    time_10k = st.text_input("Tempo dos 10K (h:mm:ss)", "39:16", disabled=not use_10k)
     
-    use_14k = st.checkbox("Include 14K", value=True)
-    time_14k = st.text_input("14K time (h:mm:ss)", "55:16", disabled=not use_14k)
+    use_14k = st.checkbox("14K", value=True)
+    time_14k = st.text_input("Tempo dos 14K (h:mm:ss)", "55:16", disabled=not use_14k)
     
-    use_hm = st.checkbox("Include Half Marathon", value=True)
-    time_hm = st.text_input("Half Marathon time (h:mm:ss)", "1:24:04", disabled=not use_hm)
+    use_hm = st.checkbox("Meia Maratona", value=True)
+    time_hm = st.text_input("Tempo da Meia Maratona (h:mm:ss)", "1:24:04", disabled=not use_hm)
     
-    use_marathon = st.checkbox("Include Marathon", value=True)
-    time_marathon = st.text_input("Marathon time (h:mm:ss)", "3:00:00", disabled=not use_marathon)
+    use_marathon = st.checkbox("Maratona", value=True)
+    time_marathon = st.text_input("Tempo da Maratona (h:mm:ss)", "3:00:00", disabled=not use_marathon)
 
 # Decay rate slider
 decay_percent = st.slider(
-    "Fatigue curve percentage (higher = more fatigue between distances)",
+    "Percentual da curva de fadiga (maior = mais fadiga entre as distâncias)",
     min_value=0.0,
     max_value=20.0,
     value=6.5,
@@ -68,7 +67,7 @@ decay_percent = st.slider(
 
 def time_to_seconds(time_str):
     if not time_str or not isinstance(time_str, str):
-        st.error(f"Invalid time input: {time_str}")
+        st.error(f"Tempo inválido: {time_str}")
         st.stop()
         
     parts = time_str.strip().split(":")
@@ -77,7 +76,7 @@ def time_to_seconds(time_str):
             minutes = int(parts[0])
             seconds = int(parts[1])
             if seconds >= 60:
-                st.error(f"Seconds should be less than 60 in time: {time_str}")
+                st.error(f"Os segundos devem ser menores que 60: {time_str}")
                 st.stop()
             return minutes * 60 + seconds
         elif len(parts) == 3:  # h:mm:ss format
@@ -85,14 +84,14 @@ def time_to_seconds(time_str):
             minutes = int(parts[1])
             seconds = int(parts[2])
             if minutes >= 60 or seconds >= 60:
-                st.error(f"Minutes and seconds should be less than 60 in time: {time_str}")
+                st.error(f"Minutos e segundos devem ser menores que 60: {time_str}")
                 st.stop()
             return hours * 3600 + minutes * 60 + seconds
         else:
-            st.error(f"Time must be in mm:ss or h:mm:ss format. Got: {time_str}")
+            st.error(f"O tempo deve estar no formato mm:ss ou h:mm:ss: {time_str}")
             st.stop()
     except (ValueError, IndexError) as e:
-        st.error(f"Invalid time format: {time_str}. Please use mm:ss for times under 1 hour or h:mm:ss for longer times.")
+        st.error(f"Invalid time format: {time_str}. Use mm:ss para tempos menores que 1 hora ou h:mm:ss para tempos maiores.")
         st.stop()
 
 def format_time(x, pos):
@@ -123,12 +122,12 @@ try:
     ]
     
     all_distances = [400, 800, 1600, 5000, 10000, 14000, 21097.5, 42195]
-    all_labels = ["Track 400", "Track 800", "Track 1600", "5k", "10k", "14k", "Half Marathon", "Marathon"]
+    all_labels = ["400m", "800m", "1600m", "5k", "10k", "14k", "Meia Maratona", "Maratona"]
 
     # Filter based on selected distances
     selected_times = [(use, time) for use, time in all_times if use]
     if not selected_times:
-        st.error("Please select at least one distance to include in the analysis.")
+        st.error("Por favor, selecione pelo menos uma distância para incluir na análise.")
         st.stop()
     
     times_pb = [time_to_seconds(time) for _, time in selected_times]
@@ -139,8 +138,8 @@ try:
     pace_pb = [t / (d / 1000) for t, d in zip(times_pb, distances)]
 
     # Find the reference distance for the decay curve
-    if use_1600 and "Track 1600" in labels:
-        ref_idx = labels.index("Track 1600")
+    if use_1600 and "1600m" in labels:
+        ref_idx = labels.index("1600m")
         ref_distance_name = "1600m"
     else:
         # Find the distance closest to the middle of the selected range
@@ -153,7 +152,7 @@ try:
     start_speed = start_distance / start_time_sec
 
     # Add explanation of reference point
-    st.info(f"Using {ref_distance_name} as the reference point for calculating the fatigue curve.")
+    st.info(f"Usando {ref_distance_name} como ponto de referência para calcular a curva de fadiga.")
 
     decay = (100 - decay_percent) / 100  # Convert percentage to decimal
     projected_pace = []
@@ -172,11 +171,11 @@ try:
 
     try:
         # Plot PB data points and line
-        plt.plot(labels, pace_pb, 'ro-', label="Your Times", linewidth=2, markersize=8)
+        plt.plot(labels, pace_pb, 'ro-', label="Seus tempos", linewidth=2, markersize=8)
 
         # Plot decay projection line
         plt.plot(labels, projected_pace, 
-                label=f"{decay_percent}% decay model (from {ref_distance_name})", 
+                label=f"{decay_percent}% redução do modelo (de {ref_distance_name})", 
                 linestyle='--', color='orange', marker='x', markersize=6)
 
         # Label PB times
@@ -190,13 +189,13 @@ try:
                     fontsize=8, ha='center', va='top', color='black')
 
         # Axis and formatting
-        plt.xlabel('Distance', fontsize=12)
+        plt.xlabel('Distância', fontsize=12)
         plt.ylabel('Pace (/km)', fontsize=12)
         ax.yaxis.set_major_formatter(ticker.FuncFormatter(format_time))
         plt.xticks(rotation=45)
 
         # Title and legend
-        plt.title('Your Running Times & Estimated Fatigue Curve', fontsize=14, pad=20)
+        plt.title('Seus tempos de corrida e curva de fadiga estimada', fontsize=14, pad=20)
         plt.legend(loc='upper left')
         plt.grid(True, alpha=0.3)
         
@@ -209,27 +208,28 @@ try:
         plt.close(fig)  # Ensure figure is cleaned up even if there's an error
 
     # Analysis section
-    st.subheader("Analysis")
+    st.subheader("Análises")
     
     if decay_percent > 8:
-        st.write("Your fatigue curve suggests you may have strengths in shorter distances. Consider endurance training to improve your performance in longer distances.")
+        st.write("Sua curva de fadiga sugere que você tem um bom desempenho em distâncias curtas. Considere o treinamento para melhorar sua resistência e o desempenho em distâncias mais longas.")
     elif decay_percent < 5:
-        st.write("Your fatigue curve shows excellent endurance capacity. You might benefit from speed work to improve your times across all distances.")
+        st.write("Sua curva de fadiga sugere que você tem um bom desempenho em distâncias longas. Considere o treinamento para melhorar sua velocidade e o desempenho em todas as distâncias.")
     else:
-        st.write("Your fatigue curve falls within a typical range for well-trained runners. You could focus on either improving overall speed or specializing in specific distances.")
+        st.write("Sua curva de fadiga está na faixa típica para corredores bem treinados. Você pode focar em melhorar sua velocidade ou priorizar o desempenho em distâncias específicas.")
 
 except ValueError as e:
-    st.error("Please ensure all times are entered in the correct format (mm:ss or h:mm:ss)")
+    st.error("Por favor, insira todos os tempos com a forma correta (mm:ss ou h:mm:ss)")
 
 st.markdown("""
-### How to Use This Tool
-1. Select which distances to include in your analysis
-2. Enter your best times for the selected distances
-3. Adjust the fatigue curve percentage to match your actual performance curve
-4. Use the insights to guide your training focus
+### Como usar a calculadora
 
-### About the Fatigue Curve
-The fatigue curve represents how much your speed decreases as the distance doubles. A lower percentage indicates better endurance capacity, while a higher percentage suggests stronger speed but less endurance.
+1. Selecione as distâncias que você irá incluir
+2. Coloque os seus melhores tempos para as distâncias selecionadas
+3. Ajuste o percentual da curva de fadiga para corresponder a sua curva de desempenho atual
+4. Use as informações para orientar o foco do seu treino
 
-Created based on insights from [@johngetstrong](https://twitter.com/johngetstrong)
+### Sobre a curva de fadiga
+A curva de fadiga representa o quanto a sua velocidade diminui à medida que a distância aumenta. Um percentual baixo indica uma grande capacidade de resistência, enquanto um percentual maior sugere menor resistência.
+
+Criado baseado nas informações do [@johngetstrong](https://twitter.com/johngetstrong)
 """) 
